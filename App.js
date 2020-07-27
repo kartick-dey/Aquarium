@@ -1,114 +1,85 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import 'react-native-gesture-handler';
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { ActivityIndicator, StyleSheet, View, StatusBar, SafeAreaView } from 'react-native';
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+import postsReducer from './store/reducers/postsReducer';
+import notificationReducer from './store/reducers/notificationReducer';
+import cartReducer from './store/reducers/cartReducer';
+import fishCategoryReducer from './store/reducers/fishCategoryReducer';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import RootStackScreen from './navigation/RootStackScreen';
+import MainTabScreen from './navigation/MainTabScreen';
+import { AuthContext } from './components/context';
+import { DrawerContent } from './navigation/DrawerScreen/DrawerContent';
 
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
+const rootReducer = combineReducers({
+  posts: postsReducer,
+  notifications: notificationReducer,
+  carts: cartReducer,
+  fishCategory: fishCategoryReducer
+});
+const store = createStore(rootReducer);
+
+const Drawer = createDrawerNavigator();
+
+
+
+const App = () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [userToken, setUserToken] = React.useState(null);
+
+  const authContext = React.useMemo(() => ({
+    signIn: () => {
+      setUserToken('bhcvyucuec');
+      setIsLoading(false);
+    },
+    signOut: () => {
+      setUserToken(null);
+      setIsLoading(false);
+    },
+    signUp: () => {
+      setUserToken('sdvchdvcgd');
+      setIsLoading(false)
+    }
+  }));
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 10)
+  }, []);
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size='large'></ActivityIndicator>
+      </View>
+    );
+  } else {
+    return (
+      <Provider store={store}>
+        <AuthContext.Provider value={authContext}>
+          <SafeAreaView style={styles.container}>
+            <StatusBar backgroundColor='white' barStyle='dark-content'></StatusBar>
+            <NavigationContainer>
+              {userToken !== null ? (
+                <Drawer.Navigator drawerContent={props => <DrawerContent {...props}></DrawerContent>}>
+                  <Drawer.Screen name="Kartick" component={MainTabScreen} />
+                </Drawer.Navigator>
+              ) : <RootStackScreen></RootStackScreen>}
+            </NavigationContainer>
+          </SafeAreaView>
+        </AuthContext.Provider>
+      </Provider>
+    )
+  }
+}
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+  container: {
+    flex: 1
+  }
 });
-
 export default App;
